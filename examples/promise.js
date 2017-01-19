@@ -1,3 +1,4 @@
+const makeNewProxy = require('../')
 const log => (...args) => { args.forEach(a => { console.log(a) }) }
 
 const promiser = anything => makeNewProxy(anything, {
