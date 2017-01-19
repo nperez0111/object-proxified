@@ -61,7 +61,7 @@ const merge = require('merge'),
                     let ret = {};
                     prop.forEach((cur) => {
 
-                        ret[cur] = mappings.pick(obj, cur)
+                        ret[cur] = mappings.pick(obj)(cur)
 
                     })
 
@@ -77,7 +77,7 @@ const merge = require('merge'),
             }
         },
         forEach(obj) {
-            return obj.keys.forEach
+            return (fn) => obj.keys.forEach((key) => { fn.call(obj, key, obj[key], obj) })
         },
         every(obj) {
             return check => obj.values.every(check)
@@ -124,7 +124,7 @@ const merge = require('merge'),
                 const index = obj.values.indexOf(query)
                 if (index === -1) {
                     if (noError) {
-                        return noop;
+                        return undefined;
                     }
                     throw Error(`Object does not have value '${query}'`)
                 }
@@ -132,10 +132,10 @@ const merge = require('merge'),
             }
         },
         includes(obj) {
-            return obj.keyOf(query, false, true) === false ? false : true
+            return query => obj.values.indexOf(query) > -1
         },
         has(obj) {
-            return obj.keys.indexOf(query) > -1
+            return query => obj.keys.indexOf(query) > -1
         },
         copy(obj) {
             return makeObj(obj.keys, obj.values)
@@ -196,7 +196,7 @@ const merge = require('merge'),
                     return obj.filter(value => value === true || value === false)
                 },
                 objects(options) {
-                    return obj.filter(value => (typeof value) === (typeof {}))
+                    return obj.filter(value => isObj(value))
                 }
             })
             return options
@@ -205,10 +205,17 @@ const merge = require('merge'),
             return transfromFunc => {
                 return makeNewProxy({}, {}, {
                     defaultCase(target, property, value) {
-                        obj[property] = transfromFunc(value)
+                        obj[property] = transfromFunc(value, property)
                     }
                 })
             }
+        },
+        strToObj(obj) {
+            return makeNewProxy({}, {}, {
+                defaultCase(target, property, value) {
+                    obj[property] = JSON.parse(value)
+                }
+            })
         }
     }
 
