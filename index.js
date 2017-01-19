@@ -1,4 +1,5 @@
 "use strict";
+
 const merge = require('merge'),
     isObj = require('is-obj'),
     makeNewProxy = require('proxify-objects'),
